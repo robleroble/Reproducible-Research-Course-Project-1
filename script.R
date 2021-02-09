@@ -61,14 +61,49 @@ lines(dailysteps$date, fiveDayAve, col="red", lwd=3)
 
 
 #### 5 min interval that on average contains max number of steps
+## group data by interval and get the mean
+
+intervalData <- data %>%
+  group_by(interval) %>%
+  summarize(mean_steps = mean(steps, na.rm=TRUE))
+
+mostStepInterval <- intervalData[which.max(intervalData$mean_steps),]
+mostStepInterval
 
 
+#### how to impute missing data
+## I will take mean values from intervals and use them to fill in NAs for each interval
+# Take interval data from previous part
+intervalData
 
+# Find rows with NA values
+NAs <- which(is.na(data$steps))
+naRows <- data[NAs,]
 
+imputedData <- data
 
+for (i in 1:length(imputedData$steps)) {
+  if (is.na(imputedData$steps[i])) {
+    imputedData$steps[i] <- intervalData$mean_steps[intervalData$interval == imputedData$interval[i]]
+  }
+}
 
+imputeddailysteps <- imputedData %>%
+  group_by(date) %>%
+  summarize(total_steps=sum(steps)) %>%
+  filter(!is.na(total_steps))
 
+hist(imputeddailysteps$total_steps, 
+     main="Steps walked daily in October-November 2012",
+     xlab="Number of Steps",
+     col="lightblue")
 
+#### Mean and median steps taken each day
+# mean
+mean(imputeddailysteps$total_steps)
+
+# median
+median(imputeddailysteps$total_steps)
 
 
 
